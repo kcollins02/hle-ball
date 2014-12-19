@@ -9,6 +9,16 @@
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
     <title>Hle-ball</title>
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"> </script>
+    <style type="text/css">
+		#stage {
+			display: block;
+			border: 1px dashed black;
+			width: 600px;
+			height: 600px;
+			margin: 0 auto;
+		}
+    </style>
   </head>
 
   <body>
@@ -31,10 +41,10 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>
-<a id="welcome-to-the-magic-hle-generator" class="anchor" href="#welcome-to-the-magic-hle-generator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to the Magic HLE Generator</h3>
+        <h3><a id="welcome-to-the-magic-hle-generator" class="anchor" href="#welcome-to-the-magic-hle-generator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to the Magic HLE Generator</h3>
 
-<p>This Magic HLE Ball will solve your HLE problems</p>
+		<p>This Magic HLE Ball will solve your HLE problems</p>
+		<canvas id="stage" width="600" height="600"></canvas>
       </section>
     </div>
 
@@ -46,7 +56,85 @@
       </footer>
     </div>
 
-    
 
+
+    <script type="text/javascript">
+		(function ($) {
+			"use strict";
+
+			var canvas = document.getElementById('stage'),
+				stage = $('#stage'),
+				stageWidth = stage.width(),
+				stageHeight = stage.height(),
+				pi = Math.PI,
+				stageOffset = stage.offset(),
+				ballPosition = {x : stageWidth/2, y : stageHeight/2},
+				mousePosition = {x : 0, y : 0},
+				ctx,
+				ballText = '';
+
+			function draw(){
+				if (canvas.getContext !== undefined){
+					ctx = canvas.getContext('2d');
+
+					ctx.fillStyle = "#000";
+					ctx.clearRect(0,0,stageWidth,stageHeight) //8 ball shape
+					ctx.beginPath();
+					ctx.arc(ballPosition.x, ballPosition.y, stageWidth*.45, 0, pi*2, true);
+					ctx.fill();
+
+					ctx.fillStyle = "#fff"; // ball window
+					ctx.beginPath();
+					ctx.arc(ballPosition.x, ballPosition.y, stageWidth*.2, 0, pi*2, true);
+					ctx.fill();
+
+					ctx.fillStyle = "#000"; //ball text
+					ctx.font = "20px Arial";
+					ctx.fillText(ballText, -40 + ballPosition.x + (stageWidth*.2 - ctx.measureText(ballText).width), ballPosition.y+15);
+
+				}
+			}
+			console.log(stageWidth);
+			console.log(stageWidth*.2);
+			console.log(stageWidth*.2);
+
+			function getEstimate (floor, ceiling) {
+				var text = '';
+				if (Math.random() < .25) {
+					text = "Outlook not so good";
+				} else {
+					text = Math.floor(Math.random() * ceiling) + floor + " hours";
+				}
+				return text;
+			}
+
+			stage.on({
+				mousedown : function (e) {
+					var x = e.pageX-stageOffset.left,
+						y = e.pageY-stageOffset.top,
+						originalBallPosition = ballPosition;
+					mousePosition = {x : x, y : y};
+					stage.on({
+						mousemove : function (e) {
+							var x = e.pageX-stageOffset.left,
+								y = e.pageY-stageOffset.top;
+
+							ballPosition = {
+								x : originalBallPosition.x + (x - mousePosition.x),
+								y : originalBallPosition.y + (y - mousePosition.y)
+							};
+						}
+					});
+				},
+				mouseup : function (e) {
+					ballPosition = {x : stageWidth/2, y : stageHeight/2}
+					stage.off('mousemove');
+					ballText = getEstimate(1, 100);
+				},
+			});
+
+			setInterval(draw, 1000/120);
+		} (jQuery));
+    </script>
   </body>
 </html>
