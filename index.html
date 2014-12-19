@@ -140,6 +140,12 @@
 
 					setTimeout(updateBallText, 500);
 				},
+				mouseout : function (e) {
+					ballPosition = {x : stageWidth/2, y : stageHeight/2}
+					stage.off('mousemove');
+
+					setTimeout(updateBallText, 500);
+				}
 			});
 
 			setInterval(draw, 1000/120);
