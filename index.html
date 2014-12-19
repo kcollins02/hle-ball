@@ -94,14 +94,14 @@
 
 				}
 			}
-			console.log(stageWidth);
-			console.log(stageWidth*.2);
-			console.log(stageWidth*.2);
 
 			function getEstimate (floor, ceiling) {
-				var text = '';
-				if (Math.random() < .25) {
+				var text = '',
+					die = Math.random();
+				if ( die < .2) {
 					text = "Outlook not so good";
+				} else if (die < .4) {
+					text = "Better not tell you now";
 				} else {
 					text = Math.floor(Math.random() * ceiling) + floor + " hours";
 				}
