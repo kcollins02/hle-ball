@@ -94,6 +94,9 @@
 
 				}
 			}
+			console.log(stageWidth);
+			console.log(stageWidth*.2);
+			console.log(stageWidth*.2);
 
 			function getEstimate (floor, ceiling) {
 				var text = '',
@@ -108,12 +111,17 @@
 				return text;
 			}
 
+			function updateBallText () {
+				ballText = getEstimate(1, 100);
+			}
+
 			stage.on({
 				mousedown : function (e) {
 					var x = e.pageX-stageOffset.left,
 						y = e.pageY-stageOffset.top,
 						originalBallPosition = ballPosition;
 					mousePosition = {x : x, y : y};
+					ballText = "";
 					stage.on({
 						mousemove : function (e) {
 							var x = e.pageX-stageOffset.left,
@@ -129,7 +137,8 @@
 				mouseup : function (e) {
 					ballPosition = {x : stageWidth/2, y : stageHeight/2}
 					stage.off('mousemove');
-					ballText = getEstimate(1, 100);
+
+					setTimeout(updateBallText, 500);
 				},
 			});
 
