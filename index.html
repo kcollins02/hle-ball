@@ -69,86 +69,132 @@
 				pi = Math.PI,
 				stageOffset = stage.offset(),
 				ballPosition = {x : stageWidth/2, y : stageHeight/2},
+				originalBallPosition = ballPosition,
 				mousePosition = {x : 0, y : 0},
 				ctx,
-				ballText = '';
+				fadeTimer,
+				ballText = '',
+				ballMoved = true,
+				windowColor = 'rgba(255, 255, 255, 1)'; // draw the first time
 
+			// draws shapes on canvas for each frame
 			function draw(){
-				if (canvas.getContext !== undefined){
+				if (canvas.getContext !== undefined && ballMoved === true){
 					ctx = canvas.getContext('2d');
 
 					ctx.fillStyle = "#000";
 					ctx.clearRect(0,0,stageWidth,stageHeight) //8 ball shape
 					ctx.beginPath();
-					ctx.arc(ballPosition.x, ballPosition.y, stageWidth*.45, 0, pi*2, true);
+					ctx.arc(ballPosition.x, ballPosition.y, stageWidth * .45, 0, pi * 2, true);
 					ctx.fill();
 
-					ctx.fillStyle = "#fff"; // ball window
+					ctx.fillStyle = windowColor; // ball window
 					ctx.beginPath();
-					ctx.arc(ballPosition.x, ballPosition.y, stageWidth*.2, 0, pi*2, true);
+					ctx.arc(ballPosition.x, ballPosition.y, stageWidth * .2, 0, pi * 2, true);
 					ctx.fill();
 
 					ctx.fillStyle = "#000"; //ball text
 					ctx.font = "20px Arial";
-					ctx.fillText(ballText, -40 + ballPosition.x + (stageWidth*.2 - ctx.measureText(ballText).width), ballPosition.y+15);
-
+					ctx.fillText(ballText, ballPosition.x + (stageWidth * .2 - ctx.measureText(ballText).width) - 40, ballPosition.y+15);
+					updateStage(false);
 				}
 			}
-			console.log(stageWidth);
-			console.log(stageWidth*.2);
-			console.log(stageWidth*.2);
 
-			function getEstimate (floor, ceiling) {
+			// generate estimate text
+			function generateEstimate (min, max) {
 				var text = '',
-					die = Math.random();
-				if ( die < .2) {
+					probability = Math.random();
+				if ( probability < .1) {
 					text = "Outlook not so good";
-				} else if (die < .4) {
+				} else if (probability < .2) {
 					text = "Better not tell you now";
 				} else {
-					text = Math.floor(Math.random() * ceiling) + floor + " hours";
+					text = Math.floor(Math.random() * max) + min + " hours";
 				}
 				return text;
 			}
 
+			// updates estimate text
 			function updateBallText () {
-				ballText = getEstimate(1, 100);
+				fadeWindow(0, 1);
+				ballText = generateEstimate(1, 100);
+				updateStage();
+
 			}
 
-			stage.on({
-				mousedown : function (e) {
-					var x = e.pageX-stageOffset.left,
-						y = e.pageY-stageOffset.top,
-						originalBallPosition = ballPosition;
-					mousePosition = {x : x, y : y};
-					ballText = "";
-					stage.on({
-						mousemove : function (e) {
-							var x = e.pageX-stageOffset.left,
-								y = e.pageY-stageOffset.top;
+			// behaviour when ball is picked up
+			function pickUpBall (e) {
+				var x = e.pageX-stageOffset.left,
+					y = e.pageY-stageOffset.top;
+				stopfadeWindow();
+				originalBallPosition = ballPosition;
+				mousePosition = {x : x, y : y};
+				ballText = "";
+				stage.on({
+					mousemove : shakeBall,
+					mouseout : dropBall,
+					mouseup : dropBall
+				});
+			}
 
-							ballPosition = {
-								x : originalBallPosition.x + (x - mousePosition.x),
-								y : originalBallPosition.y + (y - mousePosition.y)
-							};
-						}
-					});
-				},
-				mouseup : function (e) {
-					ballPosition = {x : stageWidth/2, y : stageHeight/2}
-					stage.off('mousemove');
+			// behaviour when ball is shaken
+			function shakeBall (e) {
+				var x = e.pageX-stageOffset.left,
+					y = e.pageY-stageOffset.top;
+				windowColor = 'rgba(255, 255, 255, 0)';
+				ballPosition = {
+					x : originalBallPosition.x + (x - mousePosition.x),
+					y : originalBallPosition.y + (y - mousePosition.y)
+				};
+				updateStage();
+			}
 
-					setTimeout(updateBallText, 500);
-				},
-				mouseout : function (e) {
-					ballPosition = {x : stageWidth/2, y : stageHeight/2}
-					stage.off('mousemove');
+			// behaviour when ball is put down
+			function dropBall (e) {
+				stage.off('mousemove');
+				stage.off('mouseout');
+				stage.off('mouseup');
+				ballPosition = {x : stageWidth / 2, y : stageHeight / 2};
+				updateStage();
+				updateBallText();
+			}
 
-					setTimeout(updateBallText, 500);
+			function fadeWindow(fromAlpha, toAlpha) {
+				function updateFadeAlpha () {
+					if(fromAlpha > toAlpha) {
+						stopfadeWindow();
+					}
+					fromAlpha += .01;
+					console.log(fromAlpha);
+					windowColor = 'rgba(255, 255, 255, ' + fromAlpha + ')';
+					updateStage();
+				};
+				updateFadeAlpha();
+				//setTimeout(function () {
+					stopfadeWindow();
+					fadeTimer =  setInterval(updateFadeAlpha, 10);
+				//}, 125);
+			}
+
+			function stopfadeWindow() {
+				clearInterval(fadeTimer);
+				console.log('stop');
+			}
+
+			function updateStage (state) {
+				if(state === undefined) {
+					state = true;
 				}
+				ballMoved = state;
+			}
+
+			// setup mouse event listener
+			stage.on({
+				mousedown : pickUpBall
 			});
 
-			setInterval(draw, 1000/120);
+			// establish canvas update frame rate
+			setInterval(draw, 1000/30);
 		} (jQuery));
     </script>
   </body>
